@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, Filter, Star, Download } from 'lucide-react';
+import { ScrollAnimatedElement } from './ScrollAnimations';
 
 interface AIAgent {
   id: string;
@@ -96,15 +97,19 @@ const AIMarketplace = () => {
   return (
     <div className="pt-20 min-h-screen">
       <div className="container mx-auto px-6 py-12">
-        <div className="text-center mb-12">
+        <ScrollAnimatedElement className="text-center mb-12" animation="fadeUp">
           <h1 className="text-4xl font-bold mb-4">AIRE Solutions Marketplace</h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
             Discover powerful AI agents built to enhance your business capabilities. 
             Each agent is powered by cutting-edge AI technology.
           </p>
-        </div>
+        </ScrollAnimatedElement>
 
-        <div className="flex flex-col md:flex-row gap-6 mb-8">
+        <ScrollAnimatedElement 
+          className="flex flex-col md:flex-row gap-6 mb-8"
+          animation="fadeUp"
+          delay={200}
+        >
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
@@ -121,7 +126,7 @@ const AIMarketplace = () => {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category.toLowerCase())}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-300 ${
+                className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-300 hover:scale-105 ${
                   selectedCategory === category.toLowerCase()
                     ? 'bg-blue-500 text-white'
                     : 'bg-gray-800 bg-opacity-50 text-gray-300 hover:bg-opacity-70'
@@ -131,46 +136,52 @@ const AIMarketplace = () => {
               </button>
             ))}
           </div>
-        </div>
+        </ScrollAnimatedElement>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAgents.map((agent) => (
-            <div key={agent.id} className="group relative backdrop-blur-sm rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-300 overflow-hidden">
-              <div className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 bg-gradient-to-br ${agent.gradient}`}></div>
-              
-              <div className="relative p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold">{agent.name}</h3>
-                  <span className="px-3 py-1 bg-blue-500 bg-opacity-20 rounded-full text-blue-400 text-sm">
-                    ${agent.price}
-                  </span>
-                </div>
+          {filteredAgents.map((agent, index) => (
+            <ScrollAnimatedElement
+              key={agent.id}
+              animation="fadeUp"
+              delay={300 + (index * 100)}
+            >
+              <div className="group relative backdrop-blur-sm rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-500 overflow-hidden hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/10">
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 bg-gradient-to-br ${agent.gradient}`}></div>
                 
-                <p className="text-gray-400 mb-4">{agent.description}</p>
-                
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {agent.tags.map((tag, index) => (
-                    <span key={index} className="px-2 py-1 bg-gray-800 bg-opacity-50 rounded-md text-sm text-gray-300">
-                      {tag}
+                <div className="relative p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-xl font-bold group-hover:text-blue-400 transition-colors duration-300">{agent.name}</h3>
+                    <span className="px-3 py-1 bg-blue-500 bg-opacity-20 rounded-full text-blue-400 text-sm">
+                      ${agent.price}
                     </span>
-                  ))}
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <Star className="text-yellow-500" size={16} />
-                    <span>{agent.rating}</span>
-                    <span className="text-gray-400">|</span>
-                    <Download size={16} className="text-gray-400" />
-                    <span>{agent.downloads}</span>
                   </div>
                   
-                  <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg transition-all duration-300">
-                    Purchase
-                  </button>
+                  <p className="text-gray-400 mb-4 group-hover:text-gray-300 transition-colors duration-300">{agent.description}</p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {agent.tags.map((tag, tagIndex) => (
+                      <span key={tagIndex} className="px-2 py-1 bg-gray-800 bg-opacity-50 rounded-md text-sm text-gray-300">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-2">
+                      <Star className="text-yellow-500" size={16} />
+                      <span>{agent.rating}</span>
+                      <span className="text-gray-400">|</span>
+                      <Download size={16} className="text-gray-400" />
+                      <span>{agent.downloads}</span>
+                    </div>
+                    
+                    <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg transition-all duration-300 hover:scale-105">
+                      Purchase
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </ScrollAnimatedElement>
           ))}
         </div>
       </div>
