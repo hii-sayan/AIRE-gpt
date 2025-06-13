@@ -49,10 +49,12 @@ const Hero = () => {
       className="relative min-h-screen flex items-center pt-20 overflow-hidden"
       ref={glowRef}
     >
-      {/* 3D Particle System */}
-      <div className="absolute inset-0 z-10">
-        <ParticleSystem particleCount={120} />
-      </div>
+      {/* 3D Particle System - Only show if motion is not reduced */}
+      {!prefersReducedMotion && (
+        <div className="absolute inset-0 z-10">
+          <ParticleSystem particleCount={60} />
+        </div>
+      )}
 
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden z-0">

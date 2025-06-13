@@ -21,7 +21,7 @@ interface ParticleSystemProps {
 }
 
 const ParticleSystem: React.FC<ParticleSystemProps> = ({ 
-  particleCount = 150, 
+  particleCount = 80, 
   className = "" 
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -31,13 +31,13 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
   const scrollRef = useRef(0);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  // Colors for particles
+  // More subtle colors for particles
   const colors = [
-    'rgba(59, 130, 246, 0.8)',   // Blue
-    'rgba(147, 51, 234, 0.8)',   // Purple
-    'rgba(6, 182, 212, 0.8)',    // Cyan
-    'rgba(168, 85, 247, 0.8)',   // Violet
-    'rgba(34, 197, 94, 0.8)',    // Green
+    'rgba(59, 130, 246, 0.3)',   // Blue - more transparent
+    'rgba(147, 51, 234, 0.25)',  // Purple - more transparent
+    'rgba(6, 182, 212, 0.2)',    // Cyan - more transparent
+    'rgba(168, 85, 247, 0.25)',  // Violet - more transparent
+    'rgba(34, 197, 94, 0.2)',    // Green - more transparent
   ];
 
   // Initialize particles
@@ -53,11 +53,11 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
         x,
         y,
         z,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        vz: (Math.random() - 0.5) * 0.5,
-        size: Math.random() * 3 + 1,
-        opacity: Math.random() * 0.8 + 0.2,
+        vx: (Math.random() - 0.5) * 0.1, // Much slower initial velocity
+        vy: (Math.random() - 0.5) * 0.1, // Much slower initial velocity
+        vz: (Math.random() - 0.5) * 0.05, // Much slower z velocity
+        size: Math.random() * 2 + 0.5, // Smaller particles
+        opacity: Math.random() * 0.4 + 0.1, // More subtle opacity
         color: colors[Math.floor(Math.random() * colors.length)],
         originalX: x,
         originalY: y,
@@ -119,36 +119,36 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
     
     // Update and draw particles
     particlesRef.current.forEach((particle, index) => {
-      // Mouse interaction
+      // Much more subtle mouse interaction
       const mouseDistance = Math.sqrt(
         Math.pow(particle.x - mouseRef.current.x, 2) + 
         Math.pow(particle.y - mouseRef.current.y, 2)
       );
       
-      const mouseInfluence = Math.max(0, 150 - mouseDistance) / 150;
-      const mouseForceX = (mouseRef.current.x - particle.x) * mouseInfluence * 0.02;
-      const mouseForceY = (mouseRef.current.y - particle.y) * mouseInfluence * 0.02;
+      const mouseInfluence = Math.max(0, 200 - mouseDistance) / 200;
+      const mouseForceX = (mouseRef.current.x - particle.x) * mouseInfluence * 0.003; // Much weaker force
+      const mouseForceY = (mouseRef.current.y - particle.y) * mouseInfluence * 0.003; // Much weaker force
       
-      // Scroll influence
-      const scrollInfluence = scrollRef.current * 0.001;
+      // Very subtle scroll influence
+      const scrollInfluence = scrollRef.current * 0.0002; // Much weaker scroll effect
       
       // Update position with forces
       particle.vx += mouseForceX;
       particle.vy += mouseForceY;
       particle.vz += scrollInfluence;
       
-      // Apply some damping
-      particle.vx *= 0.98;
-      particle.vy *= 0.98;
-      particle.vz *= 0.98;
+      // Apply stronger damping for slower movement
+      particle.vx *= 0.95;
+      particle.vy *= 0.95;
+      particle.vz *= 0.95;
       
       // Update position
       particle.x += particle.vx;
       particle.y += particle.vy;
       particle.z += particle.vz;
       
-      // Gentle drift back to original position
-      const returnForce = 0.005;
+      // Very gentle drift back to original position
+      const returnForce = 0.001; // Much weaker return force
       particle.vx += (particle.originalX - particle.x) * returnForce;
       particle.vy += (particle.originalY - particle.y) * returnForce;
       particle.vz += (particle.originalZ - particle.z) * returnForce;
@@ -161,37 +161,37 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
       if (particle.z < 0) particle.z = 1000;
       if (particle.z > 1000) particle.z = 0;
       
-      // Calculate 3D projection
-      const perspective = 800;
-      const projectedX = particle.x + (particle.x - width / 2) * (particle.z / perspective) * 0.1;
-      const projectedY = particle.y + (particle.y - height / 2) * (particle.z / perspective) * 0.1;
-      const scale = 1 - particle.z / 1000 * 0.5;
+      // Calculate 3D projection with less dramatic effect
+      const perspective = 1200; // Increased for more subtle 3D effect
+      const projectedX = particle.x + (particle.x - width / 2) * (particle.z / perspective) * 0.05; // Reduced 3D effect
+      const projectedY = particle.y + (particle.y - height / 2) * (particle.z / perspective) * 0.05; // Reduced 3D effect
+      const scale = 1 - particle.z / 1000 * 0.3; // Less dramatic scaling
       const finalSize = particle.size * scale;
-      const finalOpacity = particle.opacity * scale;
+      const finalOpacity = particle.opacity * scale * 0.6; // Even more subtle
       
-      // Draw particle
+      // Draw particle with subtle glow
       ctx.save();
       ctx.globalAlpha = finalOpacity;
       ctx.fillStyle = particle.color;
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 5; // Reduced glow
       ctx.shadowColor = particle.color;
       
       ctx.beginPath();
       ctx.arc(projectedX, projectedY, finalSize, 0, Math.PI * 2);
       ctx.fill();
       
-      // Add glow effect for nearby particles
-      if (mouseInfluence > 0.3) {
-        ctx.shadowBlur = 20;
-        ctx.globalAlpha = mouseInfluence * 0.5;
+      // Very subtle glow effect for nearby particles
+      if (mouseInfluence > 0.5) {
+        ctx.shadowBlur = 8;
+        ctx.globalAlpha = mouseInfluence * 0.2; // Much more subtle
         ctx.beginPath();
-        ctx.arc(projectedX, projectedY, finalSize * 2, 0, Math.PI * 2);
+        ctx.arc(projectedX, projectedY, finalSize * 1.5, 0, Math.PI * 2);
         ctx.fill();
       }
       
       ctx.restore();
       
-      // Draw connections between nearby particles
+      // Draw very subtle connections between nearby particles
       particlesRef.current.slice(index + 1).forEach(otherParticle => {
         const distance = Math.sqrt(
           Math.pow(particle.x - otherParticle.x, 2) + 
@@ -199,14 +199,14 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
           Math.pow(particle.z - otherParticle.z, 2) * 0.1
         );
         
-        if (distance < 100) {
-          const otherProjectedX = otherParticle.x + (otherParticle.x - width / 2) * (otherParticle.z / perspective) * 0.1;
-          const otherProjectedY = otherParticle.y + (otherParticle.y - height / 2) * (otherParticle.z / perspective) * 0.1;
+        if (distance < 80) { // Shorter connection distance
+          const otherProjectedX = otherParticle.x + (otherParticle.x - width / 2) * (otherParticle.z / perspective) * 0.05;
+          const otherProjectedY = otherParticle.y + (otherParticle.y - height / 2) * (otherParticle.z / perspective) * 0.05;
           
           ctx.save();
-          ctx.globalAlpha = (1 - distance / 100) * 0.2;
-          ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
-          ctx.lineWidth = 0.5;
+          ctx.globalAlpha = (1 - distance / 80) * 0.08; // Much more subtle connections
+          ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
+          ctx.lineWidth = 0.3; // Thinner lines
           ctx.beginPath();
           ctx.moveTo(projectedX, projectedY);
           ctx.lineTo(otherProjectedX, otherProjectedY);
