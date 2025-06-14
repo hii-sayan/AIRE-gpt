@@ -49,24 +49,24 @@ const Hero = () => {
       className="relative min-h-screen flex items-center pt-20 overflow-hidden"
       ref={glowRef}
     >
-      {/* 3D Particle System - Only show if motion is not reduced */}
+      {/* Subtle 3D Particle System - Only show if motion is not reduced */}
       {!prefersReducedMotion && (
         <div className="absolute inset-0 z-10">
           <ParticleSystem particleCount={60} />
         </div>
       )}
 
-      {/* Animated background elements */}
+      {/* Animated background elements - more subtle */}
       <div className="absolute inset-0 overflow-hidden z-0">
-        <div className={`absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500 rounded-full filter blur-[100px] opacity-20 ${!prefersReducedMotion ? 'animate-pulse' : ''}`}></div>
-        <div className={`absolute bottom-1/4 right-1/4 w-72 h-72 bg-purple-600 rounded-full filter blur-[100px] opacity-20 ${!prefersReducedMotion ? 'animate-pulse' : ''}`} style={{animationDelay: '1s'}}></div>
-        <div className={`absolute top-[40%] right-[30%] w-48 h-48 bg-cyan-400 rounded-full filter blur-[100px] opacity-10 ${!prefersReducedMotion ? 'animate-pulse' : ''}`} style={{animationDelay: '2s'}}></div>
+        <div className={`absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full filter blur-[120px] opacity-10 ${!prefersReducedMotion ? 'animate-pulse' : ''}`} style={{animationDuration: '8s'}}></div>
+        <div className={`absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-600 rounded-full filter blur-[120px] opacity-8 ${!prefersReducedMotion ? 'animate-pulse' : ''}`} style={{animationDelay: '2s', animationDuration: '10s'}}></div>
+        <div className={`absolute top-[40%] right-[30%] w-64 h-64 bg-cyan-400 rounded-full filter blur-[120px] opacity-6 ${!prefersReducedMotion ? 'animate-pulse' : ''}`} style={{animationDelay: '4s', animationDuration: '12s'}}></div>
       </div>
       
-      {/* Interactive glow effect */}
+      {/* Interactive glow effect - more subtle */}
       {!prefersReducedMotion && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-5">
-          <div className="w-[40vw] h-[40vw] absolute opacity-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-[80px] transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-out" style={{left: 'var(--x)', top: 'var(--y)'}}></div>
+          <div className="w-[30vw] h-[30vw] absolute opacity-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-[100px] transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-out" style={{left: 'var(--x)', top: 'var(--y)'}}></div>
         </div>
       )}
       

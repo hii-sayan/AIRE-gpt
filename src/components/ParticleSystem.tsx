@@ -13,6 +13,9 @@ interface Particle {
   originalX: number;
   originalY: number;
   originalZ: number;
+  phase: number;
+  amplitude: number;
+  frequency: number;
 }
 
 interface ParticleSystemProps {
@@ -21,7 +24,7 @@ interface ParticleSystemProps {
 }
 
 const ParticleSystem: React.FC<ParticleSystemProps> = ({ 
-  particleCount = 80, 
+  particleCount = 60, 
   className = "" 
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -29,18 +32,24 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
   const particlesRef = useRef<Particle[]>([]);
   const mouseRef = useRef({ x: 0, y: 0 });
   const scrollRef = useRef(0);
+  const timeRef = useRef(0);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  // More subtle colors for particles
+  // Subtle, soft colors with low opacity
   const colors = [
-    'rgba(59, 130, 246, 0.3)',   // Blue - more transparent
-    'rgba(147, 51, 234, 0.25)',  // Purple - more transparent
-    'rgba(6, 182, 212, 0.2)',    // Cyan - more transparent
-    'rgba(168, 85, 247, 0.25)',  // Violet - more transparent
-    'rgba(34, 197, 94, 0.2)',    // Green - more transparent
+    'rgba(59, 130, 246, 0.4)',   // Soft blue
+    'rgba(147, 51, 234, 0.35)',  // Soft purple
+    'rgba(6, 182, 212, 0.3)',    // Soft cyan
+    'rgba(168, 85, 247, 0.35)',  // Soft violet
+    'rgba(34, 197, 94, 0.3)',    // Soft green
   ];
 
-  // Initialize particles
+  // Easing function for smooth transitions
+  const easeInOutSine = (t: number): number => {
+    return -(Math.cos(Math.PI * t) - 1) / 2;
+  };
+
+  // Initialize particles with gentle movement parameters
   const initParticles = (width: number, height: number) => {
     const particles: Particle[] = [];
     
@@ -53,22 +62,25 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
         x,
         y,
         z,
-        vx: (Math.random() - 0.5) * 0.1, // Much slower initial velocity
-        vy: (Math.random() - 0.5) * 0.1, // Much slower initial velocity
-        vz: (Math.random() - 0.5) * 0.05, // Much slower z velocity
-        size: Math.random() * 2 + 0.5, // Smaller particles
-        opacity: Math.random() * 0.4 + 0.1, // More subtle opacity
+        vx: 0,
+        vy: 0,
+        vz: 0,
+        size: Math.random() * 3 + 2, // 2-5px size range
+        opacity: Math.random() * 0.3 + 0.3, // 0.3-0.6 opacity range
         color: colors[Math.floor(Math.random() * colors.length)],
         originalX: x,
         originalY: y,
         originalZ: z,
+        phase: Math.random() * Math.PI * 2, // Random starting phase
+        amplitude: Math.random() * 25 + 15, // 15-40px movement amplitude (within 50px max)
+        frequency: 0.0005 + Math.random() * 0.0003, // Very slow frequency for 8-12 second cycles
       });
     }
     
     particlesRef.current = particles;
   };
 
-  // Handle mouse movement
+  // Handle mouse movement for subtle interaction
   const handleMouseMove = (event: MouseEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -80,7 +92,7 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
     };
   };
 
-  // Handle scroll
+  // Handle scroll for gentle depth changes
   const handleScroll = () => {
     scrollRef.current = window.scrollY;
   };
@@ -106,88 +118,96 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
     initParticles(offsetWidth, offsetHeight);
   };
 
-  // Animation loop
+  // Animation loop with subtle movements
   const animate = () => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) return;
 
     const { width, height } = dimensions;
+    timeRef.current += 16; // Approximate 60fps timing
     
-    // Clear canvas
+    // Clear canvas with slight trail effect for smoother appearance
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+    ctx.fillRect(0, 0, width, height);
     ctx.clearRect(0, 0, width, height);
     
     // Update and draw particles
     particlesRef.current.forEach((particle, index) => {
-      // Much more subtle mouse interaction
+      // Gentle sinusoidal movement
+      const time = timeRef.current * particle.frequency;
+      const horizontalOffset = Math.sin(time + particle.phase) * particle.amplitude;
+      const verticalOffset = Math.cos(time + particle.phase * 1.3) * particle.amplitude * 0.7;
+      const depthOffset = Math.sin(time * 0.5 + particle.phase) * 200;
+      
+      // Apply easing to the movement
+      const easedHorizontal = horizontalOffset * easeInOutSine((Math.sin(time) + 1) / 2);
+      const easedVertical = verticalOffset * easeInOutSine((Math.cos(time) + 1) / 2);
+      
+      // Update positions with gentle movement
+      particle.x = particle.originalX + easedHorizontal;
+      particle.y = particle.originalY + easedVertical;
+      particle.z = particle.originalZ + depthOffset;
+      
+      // Very subtle mouse interaction (much weaker than before)
       const mouseDistance = Math.sqrt(
         Math.pow(particle.x - mouseRef.current.x, 2) + 
         Math.pow(particle.y - mouseRef.current.y, 2)
       );
       
-      const mouseInfluence = Math.max(0, 200 - mouseDistance) / 200;
-      const mouseForceX = (mouseRef.current.x - particle.x) * mouseInfluence * 0.003; // Much weaker force
-      const mouseForceY = (mouseRef.current.y - particle.y) * mouseInfluence * 0.003; // Much weaker force
+      if (mouseDistance < 100) {
+        const mouseInfluence = (100 - mouseDistance) / 100 * 0.1; // Very weak influence
+        const mouseForceX = (mouseRef.current.x - particle.x) * mouseInfluence * 0.001;
+        const mouseForceY = (mouseRef.current.y - particle.y) * mouseInfluence * 0.001;
+        
+        particle.x += mouseForceX;
+        particle.y += mouseForceY;
+      }
       
-      // Very subtle scroll influence
-      const scrollInfluence = scrollRef.current * 0.0002; // Much weaker scroll effect
+      // Gentle scroll influence
+      const scrollInfluence = scrollRef.current * 0.00005;
+      particle.z += scrollInfluence;
       
-      // Update position with forces
-      particle.vx += mouseForceX;
-      particle.vy += mouseForceY;
-      particle.vz += scrollInfluence;
-      
-      // Apply stronger damping for slower movement
-      particle.vx *= 0.95;
-      particle.vy *= 0.95;
-      particle.vz *= 0.95;
-      
-      // Update position
-      particle.x += particle.vx;
-      particle.y += particle.vy;
-      particle.z += particle.vz;
-      
-      // Very gentle drift back to original position
-      const returnForce = 0.001; // Much weaker return force
-      particle.vx += (particle.originalX - particle.x) * returnForce;
-      particle.vy += (particle.originalY - particle.y) * returnForce;
-      particle.vz += (particle.originalZ - particle.z) * returnForce;
-      
-      // Wrap around edges
-      if (particle.x < 0) particle.x = width;
-      if (particle.x > width) particle.x = 0;
-      if (particle.y < 0) particle.y = height;
-      if (particle.y > height) particle.y = 0;
+      // Wrap particles that go out of bounds
+      if (particle.x < -50) particle.x = width + 50;
+      if (particle.x > width + 50) particle.x = -50;
+      if (particle.y < -50) particle.y = height + 50;
+      if (particle.y > height + 50) particle.y = -50;
       if (particle.z < 0) particle.z = 1000;
       if (particle.z > 1000) particle.z = 0;
       
-      // Calculate 3D projection with less dramatic effect
-      const perspective = 1200; // Increased for more subtle 3D effect
-      const projectedX = particle.x + (particle.x - width / 2) * (particle.z / perspective) * 0.05; // Reduced 3D effect
-      const projectedY = particle.y + (particle.y - height / 2) * (particle.z / perspective) * 0.05; // Reduced 3D effect
-      const scale = 1 - particle.z / 1000 * 0.3; // Less dramatic scaling
+      // Calculate 3D projection with subtle depth
+      const perspective = 1500;
+      const projectedX = particle.x + (particle.x - width / 2) * (particle.z / perspective) * 0.02;
+      const projectedY = particle.y + (particle.y - height / 2) * (particle.z / perspective) * 0.02;
+      const scale = 1 - particle.z / 1000 * 0.2;
       const finalSize = particle.size * scale;
-      const finalOpacity = particle.opacity * scale * 0.6; // Even more subtle
+      const finalOpacity = particle.opacity * scale * 0.8;
       
-      // Draw particle with subtle glow
+      // Draw particle with soft edges and gradient
       ctx.save();
       ctx.globalAlpha = finalOpacity;
-      ctx.fillStyle = particle.color;
-      ctx.shadowBlur = 5; // Reduced glow
-      ctx.shadowColor = particle.color;
       
+      // Create radial gradient for soft edges
+      const gradient = ctx.createRadialGradient(
+        projectedX, projectedY, 0,
+        projectedX, projectedY, finalSize * 2
+      );
+      gradient.addColorStop(0, particle.color);
+      gradient.addColorStop(0.7, particle.color.replace(/[\d\.]+\)$/g, '0.1)'));
+      gradient.addColorStop(1, 'transparent');
+      
+      ctx.fillStyle = gradient;
       ctx.beginPath();
-      ctx.arc(projectedX, projectedY, finalSize, 0, Math.PI * 2);
+      ctx.arc(projectedX, projectedY, finalSize * 2, 0, Math.PI * 2);
       ctx.fill();
       
-      // Very subtle glow effect for nearby particles
-      if (mouseInfluence > 0.5) {
-        ctx.shadowBlur = 8;
-        ctx.globalAlpha = mouseInfluence * 0.2; // Much more subtle
-        ctx.beginPath();
-        ctx.arc(projectedX, projectedY, finalSize * 1.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      // Add subtle inner glow
+      ctx.globalAlpha = finalOpacity * 0.8;
+      ctx.fillStyle = particle.color;
+      ctx.beginPath();
+      ctx.arc(projectedX, projectedY, finalSize * 0.6, 0, Math.PI * 2);
+      ctx.fill();
       
       ctx.restore();
       
@@ -195,18 +215,17 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({
       particlesRef.current.slice(index + 1).forEach(otherParticle => {
         const distance = Math.sqrt(
           Math.pow(particle.x - otherParticle.x, 2) + 
-          Math.pow(particle.y - otherParticle.y, 2) + 
-          Math.pow(particle.z - otherParticle.z, 2) * 0.1
+          Math.pow(particle.y - otherParticle.y, 2)
         );
         
-        if (distance < 80) { // Shorter connection distance
-          const otherProjectedX = otherParticle.x + (otherParticle.x - width / 2) * (otherParticle.z / perspective) * 0.05;
-          const otherProjectedY = otherParticle.y + (otherParticle.y - height / 2) * (otherParticle.z / perspective) * 0.05;
+        if (distance < 120) {
+          const otherProjectedX = otherParticle.x + (otherParticle.x - width / 2) * (otherParticle.z / perspective) * 0.02;
+          const otherProjectedY = otherParticle.y + (otherParticle.y - height / 2) * (otherParticle.z / perspective) * 0.02;
           
           ctx.save();
-          ctx.globalAlpha = (1 - distance / 80) * 0.08; // Much more subtle connections
-          ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
-          ctx.lineWidth = 0.3; // Thinner lines
+          ctx.globalAlpha = (1 - distance / 120) * 0.05; // Very subtle connections
+          ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
+          ctx.lineWidth = 0.5;
           ctx.beginPath();
           ctx.moveTo(projectedX, projectedY);
           ctx.lineTo(otherProjectedX, otherProjectedY);
